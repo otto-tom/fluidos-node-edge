@@ -198,6 +198,7 @@ function install_keink() {
     wget -q https://github.com/otto-tom/keink/releases/download/v1.14/keink
     mkdir -p ../binaries
     mv keink ../binaries/keink 
+    chmod +x ../binaries/keink 
     print_title "keink installed successfully."
 }
 
