@@ -49,6 +49,9 @@ create_kind_clusters() {
     # Get provider JSON tmp file from parameter
     provider_json=$2
 
+    # Get edge enable from parameter
+    edge_ena=$7
+
     print_title "Create KIND clusters..."
 
     # Map of clusters:
@@ -95,15 +98,28 @@ create_kind_clusters() {
         done
         # Iterate over provider clusters creation
         for i in $(seq 1 "$5"); do
-            (
+            ( 
                 # Cluster name
-                name="fluidos-provider-$i"
+                if [ "$edge_ena" == "true" ]; then
+                  name="fluidos-provider-$i"-edge
+                  export KUBECONFIG="$SCRIPT_DIR"/"$name"-config 
+                else
+                  name="fluidos-provider-$i"
+                fi
                 # Print cluster creation information
                 echo "Creating cluster $name..."
                 # Set the role of the cluster
                 role="provider"
                 # Create the cluster
-                kind create cluster --name "$name" --config "$SCRIPT_DIR"/../../quickstart/kind/configs/standard.yaml --kubeconfig "$SCRIPT_DIR"/"$name"-config -q
+                if [ "$edge_ena" == "true" ]; then
+                  "$SCRIPT_DIR"/../binaries/keink create kubeedge --name "$name" --config "$SCRIPT_DIR"/../../quickstart/kind/configs/standard-edge.yaml --kubeconfig "$SCRIPT_DIR"/"$name"-config --image othontom/node:v1.14.5-fluidos --wait 120s -q
+                  kubectl patch daemonset kube-proxy --kubeconfig "$PWD/$name"-config --context "kind-$name" -n kube-system -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
+                  kubectl patch deploy coredns --kubeconfig "$PWD/$name"-config --context "kind-$name" -n kube-system -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
+                  # Apply CloudCore CRDs
+                  kubectl apply -f "$SCRIPT_DIR/../../quickstart/edge/cloudcore/crds" --kubeconfig "$PWD/$name"-config &> $OUTPUT
+                else
+                  kind create cluster --name "$name" --config "$SCRIPT_DIR"/../../quickstart/kind/configs/standard.yaml --kubeconfig "$SCRIPT_DIR"/"$name"-config -q
+                fi
                 # Install macvlan plugin to enable multicast node discovery, if required
                 if [ "$6" == "true" ]; then
                     num_workers=$(kind get nodes --name fluidos-provider-1 | grep worker -c)

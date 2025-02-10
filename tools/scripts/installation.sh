@@ -81,6 +81,9 @@ function install_components() {
     # Get the network manager installation boolean from parameters
     enable_local_discovery=$6
 
+    # Get the edge enable boolean from parameters
+    edge_ena=$7
+
     helm repo add fluidos https://fluidos-project.github.io/node/
 
     # Read the results from the files
@@ -142,9 +145,7 @@ function install_components() {
         echo "Cluster is: $cluster"
         echo "Cluster value is: ${clusters[$cluster]}"
 
-        # Get the kubeconfig file which depends on variable installation_type
         KUBECONFIG=$(jq -r '.kubeconfig' <<< "${clusters[$cluster]}")
-
         echo "The KUBECONFIG is $KUBECONFIG"
 
         # Setup CNI to enable multicast node discovery
@@ -211,7 +212,9 @@ function install_components() {
                 --wait \
                 --kubeconfig $KUBECONFIG
             else
+		echo -e "\n\nKube Config $KUBECONFIG\n\n"
                 echo "Installing remote repositories in cluster $cluster with local resource manager"
+                #helm upgrade --install node fluidos/node --version "v0.0.6" -n fluidos --create-namespace -f "$value_file" \
                 helm upgrade --install node fluidos/node -n fluidos --create-namespace -f "$value_file" \
                 --set "provider=$installation_type" \
                 --set "common.configMaps.nodeIdentity.ip=$ip" \
@@ -221,6 +224,7 @@ function install_components() {
                 --kubeconfig "$KUBECONFIG"
             fi
         fi
+
         ) &
         # Save the PID of the process
         pids+=($!)
@@ -232,4 +236,27 @@ function install_components() {
         wait "$pid" || handle_error
         echo "Process $pid finished"
     done
+
+    for cluster in "${!clusters[@]}"; do
+        # Get the kubeconfig file which depends on variable installation_type
+
+        if [ "$(jq -r '.role' <<< "${clusters[$cluster]}")" == "provider" ] && [ "$edge_ena" == "true" ]; then
+            export KUBECONFIG=$(jq -r '.kubeconfig' <<< "${clusters[$cluster]}")
+            echo "Found Edge enabled cluster: $cluster"
+	    echo "Patching liqo for edge node"
+            kubectl patch daemonset liqo-route --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" -n liqo -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
+            kubectl patch cronjob.batch liqo-telemetry --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" -n liqo -p '{"spec": {"jobTemplate": {"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}}}' 1> $OUTPUT
+            worker=""$cluster"-worker2"
+	    echo "Taint edge worker node not to schedule any load (dirty way to avoid issues, check again once KE is updated)"
+	    kubectl taint nodes "$worker" key=NoSchedule:NoSchedule 1> $OUTPUT
+            worker_node=$(docker ps --filter "name=$worker" -q)
+	    echo "Install the MQTT broker for the worker node"
+            docker exec --privileged -it $worker_node apt-get update 1> $OUTPUT
+            docker exec --privileged -it $worker_node apt-get install -y mosquitto 1> $OUTPUT
+            docker cp "../../quickstart/kind/configs/mqtt_access.conf" $worker_node:/etc/mosquitto/conf.d 1> $OUTPUT
+            docker exec --privileged -it $worker_node systemctl enable mosquitto 1> $OUTPUT
+            docker exec --privileged -it $worker_node systemctl start mosquitto 1> $OUTPUT
+        fi
+    done
+
 }

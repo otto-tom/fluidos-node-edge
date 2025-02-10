@@ -1,5 +1,8 @@
 #!/usr/bin/bash
 
+# For edge oriented commands, values: /dev/stdout, /dev/null
+OUTPUT=/dev/null
+
 # Function to print variable title
 function print_title() {
     local title="$1"
