@@ -250,6 +250,9 @@ function install_components() {
 	    echo "Taint edge worker node not to schedule any load (dirty way to avoid issues, check again once KE is updated)"
 	    kubectl taint nodes "$worker" key=NoSchedule:NoSchedule 1> $OUTPUT
             worker_node=$(docker ps --filter "name=$worker" -q)
+        echo "Label edge worker node with fluidos tags"
+            kubectl label nodes "$worker" node-role.fluidos.eu/edge-worker=true 1> $OUTPUT
+            kubectl label nodes "$worker" node-role.fluidos.eu/sensors=true 1> $OUTPUT
 	    echo "Install the MQTT broker for the worker node"
             docker exec --privileged -it $worker_node apt-get update 1> $OUTPUT
             docker exec --privileged -it $worker_node apt-get install -y mosquitto 1> $OUTPUT

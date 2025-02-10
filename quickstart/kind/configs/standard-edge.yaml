@@ -18,6 +18,3 @@ nodes:
     # MQTT Broker
     - containerPort: 1883
       hostPort: 1883
-    labels:
-      node-role.fluidos.eu/edge-worker: "true"
-      node-role.fluidos.eu/sensors: "true"
