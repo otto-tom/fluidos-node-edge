@@ -192,6 +192,21 @@ function check_jq() {
     fi
 }
 
+# Check keink function
+function install_keink() { 
+    print_title "Install keink..."
+    wget -q https://github.com/otto-tom/keink/releases/download/v1.14/keink
+    mkdir -p ../binaries
+    mv keink ../binaries/keink 
+    print_title "keink installed successfully."
+}
+
+# Check keink function
+function check_keink() {
+    if ! test -f ../binaries/keink; then 
+    fi
+}
+
 # Check all the tools
 function check_tools() {
     print_title "Check all the tools..."
@@ -200,4 +215,9 @@ function check_tools() {
     check_kubectl
     check_helm
     check_liqoctl
+}
+
+function check_edge_tools() {
+    print_title "Check the edge tools..."
+    check_keink
 }
