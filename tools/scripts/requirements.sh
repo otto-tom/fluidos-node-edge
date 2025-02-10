@@ -203,7 +203,8 @@ function install_keink() {
 
 # Check keink function
 function check_keink() {
-    if ! test -f ../binaries/keink; then 
+    if ! test -f ../binaries/keink; then
+        install_keink
     fi
 }
 
