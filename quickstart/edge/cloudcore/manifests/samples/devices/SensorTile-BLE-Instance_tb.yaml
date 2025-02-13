@@ -1,0 +1,58 @@
+apiVersion: devices.kubeedge.io/v1alpha2
+kind: Device
+metadata:
+  name: stwinkt1b-
+  labels:
+    description: Sensor-Tile-Board
+    manufacturer: STMicroelectronics
+    model: STWINKT1B
+  annotations:
+    sensors: WwogICAgewogICAgICAgICJNYW51ZmFjdHVyZXIiOiAiU1RNaWNyb2VsZWN0cm9uaWNzIiwKICAgICAgICAiTWFya2V0IjogIkN1bnN1bWVyIiwKICAgICAgICAiTW9kZWwiOiAiaHRzMjIxIiwKICAgICAgICAiVHlwZSI6IHsKICAgICAgICAgICAgImVudmlyb25tZW50YWwiOiBbCiAgICAgICAgICAgICAgICAiVGVtcGVyYXR1cmUiLAogICAgICAgICAgICAgICAgIkh1bWlkaXR5IgogICAgICAgICAgICBdCiAgICAgICAgfSwKICAgICAgICAiVW5pdCI6IFsKICAgICAgICAgICAgIkNlbHNpdXMiLAogICAgICAgICAgICAiUGVyY2VudGFnZSIKICAgICAgICBdLAogICAgICAgICJJbnRlcmZhY2UiOiBbCiAgICAgICAgICAgICJJMkMiLAogICAgICAgICAgICAiSTJDIgogICAgICAgIF0sCiAgICAgICAgIkNoYXJhY3RlcmlzdGljcyI6IHsKICAgICAgICAgICAgImFjY3VyYWN5IjogWwogICAgICAgICAgICAgICAgMC4yLAogICAgICAgICAgICAgICAgMwogICAgICAgICAgICBdLAogICAgICAgICAgICAic2FtcGxpbmdSYXRlIjogewogICAgICAgICAgICAgICAgInVuaXQiOiBbCiAgICAgICAgICAgICAgICAgICAgIkh6IiwKICAgICAgICAgICAgICAgICAgICAiSHoiCiAgICAgICAgICAgICAgICBdLAogICAgICAgICAgICAgICAgInZhbHVlIjogWwogICAgICAgICAgICAgICAgICAgIDUwMCwKICAgICAgICAgICAgICAgICAgICAyMAogICAgICAgICAgICAgICAgXQogICAgICAgICAgICB9LAogICAgICAgICAgICAiY29uc3VtcHRpb24iOiB7CiAgICAgICAgICAgICAgICAidW5pdCI6ICLOvEEiLAogICAgICAgICAgICAgICAgInZhbHVlIjogODAKICAgICAgICAgICAgfQogICAgICAgIH0KICAgIH0KXQ==
+spec:
+  deviceModelRef:
+    name: bluenrg
+  protocol:
+    bluetooth:
+      macAddress: 
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+      - key: ''
+        operator: In
+        values:
+        - fluidos-provider-worker2          #pls give your edge node name
+  propertyVisitors:
+    - propertyName: environmental
+      collectCycle: 500000000
+      reportCycle: 1000000000    
+      bluetooth:
+        characteristicUUID: 00140000000111e1ac360002a5d5c51b
+        dataConverter:
+         startIndex: 2
+         endIndex: 7
+         orderOfOperations:  
+    - propertyName: config
+      bluetooth:
+        characteristicUUID: 00f00000000111e1ac360002a5d5c51b
+#        dataWrite:
+#         "config": [10] #Here "Config" refers to the value of the property "config" and [10] refers to the corresponding []byte value to be written into the device when the value of config is "Config"      
+           
+  data:
+    dataTopic: "$ke/events/device/+/data/update"
+    dataProperties:
+      - propertyName: environmental
+        metadata:
+          type: integer                
+status:
+  twins:
+    - propertyName: environmental
+    - propertyName: config
+      desired:
+        metadata:
+          type: string
+        value: "config"
+      reported:
+        metadata:
+          type: string
+        value: "0"
+
