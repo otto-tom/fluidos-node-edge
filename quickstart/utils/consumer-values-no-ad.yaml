@@ -62,6 +62,38 @@ localResourceManager:
       # -- The memory step that must be respected when requesting a flavour through a Flavour Selector.
       memoryStep: "100Mi"
 
+edgeResourceManager:
+  # -- The number of Edge Resource Manager, which can be increased for active/passive high availability.
+  replicas: 1
+  pod:
+    # -- Annotations for the local-resource-manager pod.
+    annotations: {}
+    # -- Labels for the local-resource-manager pod.
+    labels: {}
+    # -- Extra arguments for the edge-resource-manager pod.
+    extraArgs: []
+    # -- Resource requests and limits (https://kubernetes.io/docs/user-guide/compute-resources/) for the local-resource-manager pod.
+    resources:
+      limits: {}
+      requests: {}
+  imageName: "ghcr.io/fluidos-project/edge-resource-manager"
+  config:
+    # -- Label used to identify the nodes from which resources are collected.
+    nodeResourceLabel: "node-role.fluidos.eu/sensors"
+    # -- This flag defines the resource type of the generated flavors.
+    resourceType: "sensors"
+    # -- Enable the auto-discovery of the resources.
+    enableAutoDiscovery: false
+    flavor:
+      # -- The minimum number of CPUs that can be requested to purchase a flavor.
+      cpuMin: "0"
+      # -- The minimum amount of memory that can be requested to purchase a flavor.
+      memoryMin: "0"
+      # -- The CPU step that must be respected when requesting a flavor through a Flavor Selector.
+      cpuStep: "1000m"
+      # -- The memory step that must be respected when requesting a flavor through a Flavor Selector.
+      memoryStep: "100Mi"
+
 rearManager:
   # -- The number of REAR Manager, which can be increased for active/passive high availability.
   replicas: 1

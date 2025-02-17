@@ -1,0 +1,84 @@
+{{- $eresManagerConfig := (merge (dict "name" "edge-resource-manager" "module" "edge-resource-manager") .) -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "fluidos.labels" $eresManagerConfig | nindent 4 }}
+  name: {{ include "fluidos.prefixedName" $eresManagerConfig }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.edgeResourceManager.replicas }}
+  selector:
+    matchLabels:
+      {{- include "fluidos.labels" $eresManagerConfig | nindent 6 }}
+  template:
+    metadata: 
+    {{ if .Values.edgeResourceManager.pod.annotations }}
+      annotations:
+        {{- toYaml .Values.edgeResourceManager.pod.annotations | nindent 8 }}
+    {{ end }}
+      labels:
+        {{- include "fluidos.labels" $eresManagerConfig | nindent 8 }}
+      {{ if .Values.edgeResourceManager.pod.labels }}
+        {{ toYaml .Values.edgeResourceManager.pod.labels | nindent 8 }}
+      {{ end }}
+    spec:
+      {{- if gt .Values.edgeResourceManager.replicas 1.0 }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  {{- include "fluidos.labels" $eresManagerConfig | nindent 18 }}
+              topologyKey: kubernetes.io/hostname
+      {{- end }}
+      securityContext:
+        {{- include "fluidos.podSecurityContext" $eresManagerConfig | nindent 8 }}
+      serviceAccountName: {{ include "fluidos.prefixedName" $eresManagerConfig }}
+      containers:
+      - image: {{ .Values.edgeResourceManager.imageName }}:{{ include "fluidos.version" $eresManagerConfig }}
+        imagePullPolicy: {{ .Values.pullPolicy }}
+        securityContext:
+          {{- include "fluidos.containerSecurityContext" $eresManagerConfig | nindent 10 }}
+        name: {{ $eresManagerConfig.name }}
+        command: ["/usr/bin/edge-resource-manager"]
+        args:
+          - --node-resource-label={{ .Values.edgeResourceManager.config.nodeResourceLabel }}
+          - --resources-types={{ .Values.edgeResourceManager.config.resourceType }}
+          - --enable-webhooks={{ .Values.webhook.enabled | default "true" }}
+          - --enable-auto-discovery={{ .Values.edgeResourceManager.config.enableAutoDiscovery | default "true" }}
+        resources: {{- toYaml .Values.edgeResourceManager.pod.resources | nindent 10 }}
+        ports:
+        - name: healthz
+          containerPort: 8081
+          protocol: TCP
+        - name: webhook
+          containerPort: 9443
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: healthz
+        volumeMounts:
+        - name: webhook-certs
+          mountPath: {{ .Values.webhook.deployment.certsMount | default "/tmp/k8s-webhook-server/serving-certs/" }}
+      volumes:
+      - name: webhook-certs
+        secret:
+          secretName: {{ include "fluidos.prefixedName" $eresManagerConfig }}
+      {{- if ((.Values.common).nodeSelector) }}
+      nodeSelector:
+      {{- toYaml .Values.common.nodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if ((.Values.common).tolerations) }}
+      tolerations:
+      {{- toYaml .Values.common.tolerations | nindent 8 }}
+      {{- end }}
+      {{- if ((.Values.common).affinity) }}
+      affinity:
+      {{- toYaml .Values.common.affinity | nindent 8 }}
+      {{- end }}
+

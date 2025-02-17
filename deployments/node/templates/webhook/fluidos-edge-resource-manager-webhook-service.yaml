@@ -1,0 +1,15 @@
+{{- $eresManagerConfig := (merge (dict "name" "edge-resource-manager" "module" "edge-resource-manager") .) -}}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fluidos.prefixedName" $eresManagerConfig }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - port: 443
+      protocol: TCP
+      name: https
+      targetPort: 9443 #9443
+  selector:
+    {{- include "fluidos.labels" $eresManagerConfig | nindent 6 }}

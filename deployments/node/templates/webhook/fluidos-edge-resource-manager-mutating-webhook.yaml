@@ -1,0 +1,29 @@
+{{- $eresManagerConfig := (merge (dict "name" "edge-resource-manager" "module" "edge-resource-manager") .) -}}
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "fluidos.prefixedName" $eresManagerConfig }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "fluidos.prefixedName" $eresManagerConfig }}
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: {{ include "fluidos.prefixedName" $eresManagerConfig }}
+      namespace: {{ .Release.Namespace }}
+      path: /mutate-nodecore-fluidos-eu-v1alpha1-flavor
+  failurePolicy: Fail
+  name: mutate.flavor.nodecore.fluidos.eu
+  rules:
+  - apiGroups:
+    - nodecore.fluidos.eu
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - flavors
+  sideEffects: None
