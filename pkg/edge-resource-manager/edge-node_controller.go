@@ -75,7 +75,6 @@ func (r *EdgeNodeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// Set for labels over the node
 	labelSelector := labels.Set{flags.ResourceNodeLabel: "true"}.AsSelector()
-	klog.Info("LABEL SELECTOR: ", labelSelector)
 
 	// Fetch the Node instance
 	var node corev1.Node
@@ -85,9 +84,6 @@ func (r *EdgeNodeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 			return ctrl.Result{}, nil
 		}
 	}
-
-	klog.Info("NODE NAME: ", node.Name)
-	klog.Info("NODE LABELS: ", node.Labels)
 
 	// Check if the node has the label
 	if !labelSelector.Matches(labels.Set(node.GetLabels())) {

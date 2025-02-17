@@ -20,8 +20,6 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
-
-	stdruntime "runtime"
 )
 
 // log is for logging in this package.
@@ -55,20 +53,6 @@ var _ webhook.Validator = &Flavor{}
 func (r *Flavor) ValidateCreate() (admission.Warnings, error) {
 	flavorlog.Info("VALIDATE CREATE WEBHOOK")
 	flavorlog.Info("validate create", "name", r.Name)
-
-	pc := make([]uintptr, 10)      // Capture up to 10 stack frames
-	n := stdruntime.Callers(2, pc) // Skip runtime.Callers and printStackTrace itself
-
-	frames := stdruntime.CallersFrames(pc[:n])
-	for {
-		frame, more := frames.Next()
-		flavorlog.Info("Function:", "function", frame.Function)
-		flavorlog.Info("File:", "File", frame.File)
-		flavorlog.Info("Line:", "Line:", frame.Line)
-		if !more {
-			break
-		}
-	}
 
 	// Validate creation of Flavor checking FlavorType->TypeIdenfier matches the struct inside the FlavorType->TypeData
 	typeIdenfier, _, err := ParseFlavorType(r)
