@@ -111,13 +111,14 @@ function install_components() {
         declare -A COMPONENT_MAP
         COMPONENT_MAP["rear-controller"]="rearController.imageName"
         COMPONENT_MAP["rear-manager"]="rearManager.imageName"
+        COMPONENT_MAP["edge-resource-manager"]="edgeResourceManager.imageName"
         COMPONENT_MAP["local-resource-manager"]="localResourceManager.imageName"
         COMPONENT_MAP["network-manager"]="networkManager.imageName"
         # Build the image name using the username
         IMAGE_SET_STRING=""
         DOCKER_USERNAME="fluidoscustom"
         VERSION="0.0.1"
-        for component in rear-controller rear-manager local-resource-manager network-manager; do
+        for component in rear-controller rear-manager edge-resource-manager local-resource-manager network-manager; do
             helm_key="${COMPONENT_MAP[$component]}"
             IMAGE_SET_STRING="$IMAGE_SET_STRING --set $helm_key=$DOCKER_USERNAME/$component"
             # Build and load the docker image
