@@ -20,7 +20,7 @@ spec:
       - key: ''
         operator: In
         values:
-        - fluidos-provider-worker2          #pls give your edge node name
+        - fluidos-provider-1-edge-worker2          #pls give your edge node name
   propertyVisitors:
     - propertyName: environmental
       collectCycle: 500000000
