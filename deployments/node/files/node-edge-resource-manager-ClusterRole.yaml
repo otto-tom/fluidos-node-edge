@@ -24,6 +24,30 @@ rules:
   - list
   - watch
 - apiGroups:
+  - devices.kubeedge.io
+  resources:
+  - devicemodels
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - devices.kubeedge.io
+  resources:
+  - devices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - metrics.k8s.io
   resources:
   - nodes
