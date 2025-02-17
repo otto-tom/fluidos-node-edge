@@ -26,6 +26,7 @@ delete_kind_cluster_and_config() {
 for i in {1..10}; do
     delete_kind_cluster_and_config "fluidos-consumer-$i" "fluidos-consumer-$i-config"
     delete_kind_cluster_and_config "fluidos-provider-$i" "fluidos-provider-$i-config"
+    delete_kind_cluster_and_config "fluidos-provider-$i-edge" "fluidos-provider-$i-edge-config"
 done
 
 # Delete the JSON files if they exist
