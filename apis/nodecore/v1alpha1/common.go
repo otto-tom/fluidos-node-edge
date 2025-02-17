@@ -118,8 +118,9 @@ func ParseConfiguration(configuration *Configuration, flavor *Flavor) (FlavorTyp
 		// TODO (VM): implement the VM configuration parsing
 		return TypeVM, nil, nil
 	case TypeSensor:
-		// TODO (Sensor): implement the sensor configuration parsing
-		return TypeSensor, nil, nil
+		var sensorConfiguration SensorConfiguration
+		validationError = json.Unmarshal(configuration.ConfigurationData.Raw, &sensorConfiguration)
+		return TypeSensor, sensorConfiguration, validationError
 	default:
 		return "", nil, fmt.Errorf("partition type %s not supported", configuration.ConfigurationTypeIdentifier)
 	}

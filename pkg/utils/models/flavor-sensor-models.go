@@ -14,7 +14,48 @@
 
 package models
 
-// TODO(Sensor): Implement the Sensor models
+// SensorInfo represents a node and its resources.
+type SensorInfo struct {
+	UID          string           `json:"uid"`
+	Node         string           `json:"node"`
+	Name         string           `json:"name"`
+	Model        string           `json:"model"`
+	Manufacturer string           `json:"manufacturer"`
+	Market       string           `json:"market"`
+	Type         SensorInfoType   `json:"type"`
+	SamplingRate string           `json:"samplingRate"`
+	Accuracy     string           `json:"accuracy"`
+	Consumption  string           `json:"consumption"`
+	Latency      string           `json:"latency"`
+	Properties   SensorInfoProp   `json:"sensorInfoProperties,omitempty"`
+	Access       SensorInfoAccess `json:"sensorInfoAccess"`
+}
+
+type SensorInfoType struct {
+	SensorCategory string `json:"category"`
+	SensorType     string `json:"type"`
+}
+
+type SensorInfoProp struct {
+	Unit SensorInfoUnits `json:"units"`
+}
+
+type SensorInfoUnits struct {
+	Measurement  string `json:"measurement"`
+	Consumption  string `json:"consumption"`
+	SamplingRate string `json:"sampling"`
+}
+
+type SensorInfoAccess struct {
+	Type     string             `json:"type"`
+	Source   string             `json:"source"`
+	Resource SensorInfoResource `json:"resource"`
+}
+
+type SensorInfoResource struct {
+	Topic string `json:"topic"`
+	Node  string `json:"node"`
+}
 
 // SensorSelector is the flavor of a Sensor.
 type SensorSelector struct {

@@ -179,8 +179,14 @@ func ParseFlavorType(flavor *Flavor) (FlavorTypeIdentifier, interface{}, error) 
 		return TypeService, *service, validationErr
 
 	case TypeSensor:
-		// TODO (Sensor): implement the sensor flavor parsing
-		return "", nil, fmt.Errorf("flavor type %s not supported", flavor.Spec.FlavorType.TypeIdentifier)
+		var sensor *SensorFlavor
+		// Parse K8Slice flavor
+		sensor, err := ParseSensorFlavor(flavor.Spec.FlavorType)
+		if err != nil {
+			return "", nil, err
+		}
+
+		return TypeSensor, *sensor, validationErr
 
 	default:
 		return "", nil, fmt.Errorf("flavor type %s not supported", flavor.Spec.FlavorType.TypeIdentifier)

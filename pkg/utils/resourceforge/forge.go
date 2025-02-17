@@ -252,6 +252,93 @@ func ForgeK8SliceFlavorFromMetrics(node *models.NodeInfo, ni nodecorev1alpha1.No
 	}
 }
 
+// ForgeSensorFlavorFromMetrics creates a new flavor custom resource from the sensors reqistered for the node.
+func ForgeSensorFlavorFromMetrics(sensor *models.SensorInfo, ni nodecorev1alpha1.NodeIdentity,
+	ownerReferences []metav1.OwnerReference) (flavor *nodecorev1alpha1.Flavor) {
+
+	// Map every units slice element
+	// var units []nodecorev1alpha1.SensorUnits
+	// for _, unit := range sensor.Properties.Unit {
+	// 	units = append(units, nodecorev1alpha1.SensorUnits{
+	// 		Measurement:  unit.Measurement,
+	// 		Consumption:  unit.Consumption,
+	// 		SamplingRate: unit.SamplingRate,
+	// 	})
+	// }
+
+	sensorType := nodecorev1alpha1.SensorFlavor{
+		Characteristics: nodecorev1alpha1.SensorCharacteristics{
+			UID:  sensor.UID,
+			Node: sensor.Node,
+			Type: nodecorev1alpha1.SensorType{
+				SensorCategory: sensor.Type.SensorCategory,
+				SensorType:     sensor.Type.SensorType,
+			},
+			Model:        sensor.Model,
+			Manufacturer: sensor.Manufacturer,
+			Market:       sensor.Market,
+			SamplingRate: sensor.SamplingRate,
+			Accuracy:     sensor.Accuracy,
+			Consumption:  sensor.Consumption,
+			Latency:      sensor.Latency,
+			AdditionalProperties: nodecorev1alpha1.SensorAdditionalProperties{
+				Unit: nodecorev1alpha1.SensorUnits{
+					Measurement:  sensor.Properties.Unit.Measurement,
+					Consumption:  sensor.Properties.Unit.Consumption,
+					SamplingRate: sensor.Properties.Unit.SamplingRate,
+				},
+			},
+		},
+		Access: nodecorev1alpha1.SensorAccess{
+			Type:   sensor.Access.Type,
+			Source: sensor.Access.Source,
+			Resource: nodecorev1alpha1.Resource{
+				Topic: sensor.Access.Resource.Topic,
+				Node:  sensor.Access.Resource.Node,
+			},
+		},
+	}
+
+	// Serialize K8SliceType to JSON
+	sensorTypeJSON, err := json.Marshal(sensorType)
+	if err != nil {
+		klog.Errorf("Error when marshaling SensorType: %s", err)
+		return nil
+	}
+
+	return &nodecorev1alpha1.Flavor{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:            namings.ForgeFlavorName(string(nodecorev1alpha1.TypeSensor), ni.Domain),
+			Namespace:       flags.FluidosNamespace,
+			OwnerReferences: ownerReferences,
+		},
+		Spec: nodecorev1alpha1.FlavorSpec{
+			ProviderID: ni.NodeID,
+			FlavorType: nodecorev1alpha1.FlavorType{
+				TypeIdentifier: nodecorev1alpha1.TypeSensor,
+				TypeData:       runtime.RawExtension{Raw: sensorTypeJSON},
+			},
+			Owner: ni,
+			Price: nodecorev1alpha1.Price{
+				Amount:   flags.AMOUNT,
+				Currency: flags.CURRENCY,
+				Period:   flags.PERIOD,
+			},
+			Availability: true,
+			// FIXME: NetworkPropertyType should be taken in a smarter way
+			NetworkPropertyType: "networkProperty",
+			// FIXME: Location should be taken in a smarter way
+			Location: &nodecorev1alpha1.Location{
+				Latitude:        "35.28",
+				Longitude:       "25.13",
+				Country:         "Greece",
+				City:            "Heraklion",
+				AdditionalNotes: "None",
+			},
+		},
+	}
+}
+
 // ForgeServiceFlavorFromBlueprint creates a new flavor custom resource from a ServiceBlueprint.
 func ForgeServiceFlavorFromBlueprint(serviceBlueprint *nodecorev1alpha1.ServiceBlueprint, ni *nodecorev1alpha1.NodeIdentity,
 	ownerReferences []metav1.OwnerReference) (flavor *nodecorev1alpha1.Flavor) {
@@ -959,7 +1046,76 @@ func ForgeFlavorFromObj(flavor *models.Flavor) (*nodecorev1alpha1.Flavor, error)
 			TypeData:       runtime.RawExtension{Raw: flavorTypeDataJSON},
 		}
 	case models.SensorNameDefault:
-		// TODO (Sensor): Implement Sensor flavor
+		// Unmarshal K8SliceType
+		var flavorTypeDataModel models.K8Slice
+		err := json.Unmarshal(flavor.Type.Data, &flavorTypeDataModel)
+		if err != nil {
+			klog.Errorf("Error when unmarshalling K8SliceType: %s", err)
+			return nil, err
+		}
+		flavorTypeData := nodecorev1alpha1.K8Slice{
+			Characteristics: nodecorev1alpha1.K8SliceCharacteristics{
+				Architecture: flavorTypeDataModel.Characteristics.Architecture,
+				CPU:          flavorTypeDataModel.Characteristics.CPU,
+				Memory:       flavorTypeDataModel.Characteristics.Memory,
+				Pods:         flavorTypeDataModel.Characteristics.Pods,
+				Storage:      flavorTypeDataModel.Characteristics.Storage,
+				Gpu: func() *nodecorev1alpha1.GPU {
+					if flavorTypeDataModel.Characteristics.Gpu != nil {
+						return &nodecorev1alpha1.GPU{
+							Model:  flavorTypeDataModel.Characteristics.Gpu.Model,
+							Cores:  flavorTypeDataModel.Characteristics.Gpu.Cores,
+							Memory: flavorTypeDataModel.Characteristics.Gpu.Memory,
+						}
+					}
+					return nil
+				}(),
+			},
+			Properties: nodecorev1alpha1.Properties{
+				Latency:           flavorTypeDataModel.Properties.Latency,
+				SecurityStandards: flavorTypeDataModel.Properties.SecurityStandards,
+				CarbonFootprint: func() *nodecorev1alpha1.CarbonFootprint {
+					if flavorTypeDataModel.Properties.CarbonFootprint != nil {
+						return &nodecorev1alpha1.CarbonFootprint{
+							Embodied:    flavorTypeDataModel.Properties.CarbonFootprint.Embodied,
+							Operational: flavorTypeDataModel.Properties.CarbonFootprint.Operational,
+						}
+					}
+					return nil
+				}(),
+				NetworkAuthorizations: func() *nodecorev1alpha1.NetworkAuthorizations {
+					if flavorTypeDataModel.Properties.NetworkAuthorizations != nil {
+						return ForgeNetworkAuthorizationsFromObj(flavorTypeDataModel.Properties.NetworkAuthorizations)
+					}
+					return nil
+				}(),
+			},
+			Policies: nodecorev1alpha1.Policies{
+				Partitionability: nodecorev1alpha1.Partitionability{
+					CPUMin:     flavorTypeDataModel.Policies.Partitionability.CPUMin,
+					MemoryMin:  flavorTypeDataModel.Policies.Partitionability.MemoryMin,
+					PodsMin:    flavorTypeDataModel.Policies.Partitionability.PodsMin,
+					CPUStep:    flavorTypeDataModel.Policies.Partitionability.CPUStep,
+					MemoryStep: flavorTypeDataModel.Policies.Partitionability.MemoryStep,
+					PodsStep:   flavorTypeDataModel.Policies.Partitionability.PodsStep,
+				},
+			},
+		}
+
+		if err := forgeK8SlicePropertyAdditionalPropertiesFromObj(&flavorTypeDataModel.Properties, &flavorTypeData.Properties); err != nil {
+			klog.Errorf("Error when forging K8Slice additional properties: %s", err)
+			return nil, err
+		}
+
+		flavorTypeDataJSON, err := json.Marshal(flavorTypeData)
+		if err != nil {
+			klog.Errorf("Error when marshaling K8SliceType: %s", err)
+			return nil, err
+		}
+		flavorType = nodecorev1alpha1.FlavorType{
+			TypeIdentifier: nodecorev1alpha1.TypeK8Slice,
+			TypeData:       runtime.RawExtension{Raw: flavorTypeDataJSON},
+		}
 		return nil, fmt.Errorf("sensor flavor not implemented")
 	default:
 		klog.Errorf("Flavor type not recognized")
