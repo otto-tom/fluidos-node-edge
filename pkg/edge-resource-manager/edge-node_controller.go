@@ -17,6 +17,8 @@ package edgeresourcemanager
 import (
 	"context"
 
+	edgeclientset "github.com/kubeedge/kubeedge/pkg/client/clientset/versioned"
+	"github.com/kubeedge/kubeedge/tests/e2e/utils"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -30,12 +32,8 @@ import (
 
 	nodecorev1alpha1 "github.com/fluidos-project/node/apis/nodecore/v1alpha1"
 	"github.com/fluidos-project/node/pkg/utils/flags"
-
 	models "github.com/fluidos-project/node/pkg/utils/models"
 	"github.com/fluidos-project/node/pkg/utils/resourceforge"
-
-	edgeclientset "github.com/kubeedge/kubeedge/pkg/client/clientset/versioned"
-	"github.com/kubeedge/kubeedge/tests/e2e/utils"
 )
 
 // ClusterRole
@@ -45,6 +43,8 @@ import (
 // +kubebuilder:rbac:groups=core,resources=endpoints,verbs=get;list;watch
 // +kubebuilder:rbac:groups=metrics.k8s.io,resources=pods,verbs=get;list;watch
 // +kubebuilder:rbac:groups=metrics.k8s.io,resources=nodes,verbs=get;list;watch
+// +kubebuilder:rbac:groups=devices.kubeedge.io,resources=devices,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=devices.kubeedge.io,resources=devicemodels,verbs=get;list;watch;create;update;patch;delete
 
 // NodeReconciler reconciles a Node object and creates Flavor objects.
 type EdgeNodeReconciler struct {
@@ -107,7 +107,7 @@ func (r *EdgeNodeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// Get device list
 	// FIXME: No error check
-	deviceInstanceList, _ := utils.ListDevice(clientset, "default")
+	deviceInstanceList, _ := utils.ListDevice(clientset, "fluidos")
 
 	klog.Infof("\033[7mTotal devices found:\033[0m %d\n", len(deviceInstanceList))
 
