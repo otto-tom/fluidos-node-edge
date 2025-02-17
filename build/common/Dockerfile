@@ -1,4 +1,4 @@
-FROM golang:1.21 as builder
+FROM golang:1.21 AS builder
 WORKDIR /tmp/builder
 
 COPY go.mod ./go.mod
@@ -9,7 +9,7 @@ ARG COMPONENT
 RUN test -n "$COMPONENT" || ( echo "The COMPONENT argument is unset. Aborting" && false )
 
 COPY . ./
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -ldflags="-s -w" ./cmd/$COMPONENT
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$(go env GOARCH) go build -ldflags="-s -w" ./cmd/"$COMPONENT"
 
 
 FROM alpine:3.18
@@ -21,6 +21,6 @@ RUN apk update && \
 
 ARG COMPONENT
 COPY --from=builder /tmp/builder/$COMPONENT /usr/bin/$COMPONENT
-RUN ln -s /usr/bin/$COMPONENT /usr/bin/fluidos-component
+RUN ln -s /usr/bin/"$COMPONENT" /usr/bin/fluidos-component
 
 ENTRYPOINT [ "/usr/bin/fluidos-component" ]
