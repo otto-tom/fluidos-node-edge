@@ -112,7 +112,7 @@ create_kind_clusters() {
                 role="provider"
                 # Create the cluster
                 if [ "$edge_ena" == "true" ]; then
-                  "$SCRIPT_DIR"/../binaries/keink create kubeedge --name "$name" --config "$SCRIPT_DIR"/../../quickstart/kind/configs/standard-edge.yaml --kubeconfig "$SCRIPT_DIR"/"$name"-config --image othontom/node:v1.14.5-fluidos --wait 120s -q
+                  "$SCRIPT_DIR"/../binaries/keink create kubeedge --name "$name" --config "$SCRIPT_DIR"/../../quickstart/kind/configs/standard-edge.yaml --kubeconfig "$SCRIPT_DIR"/"$name"-config --image othontom/node:v1.14.5-fluidos --wait 120s -q  || { echo "Error: KEINK failed. Clean dev environment and try again!"; exit 1; }
                   kubectl patch daemonset kube-proxy --kubeconfig "$PWD/$name"-config --context "kind-$name" -n kube-system -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
                   kubectl patch deploy coredns --kubeconfig "$PWD/$name"-config --context "kind-$name" -n kube-system -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
                   # Apply CloudCore CRDs
