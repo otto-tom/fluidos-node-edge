@@ -1,7 +1,7 @@
 apiVersion: devices.kubeedge.io/v1alpha2
 kind: Device
 metadata:
-  name: stwinkt1b-
+  name: stwinkt1b-00112233ffee
   labels:
     description: Sensor-Tile-Board
     manufacturer: STMicroelectronics
@@ -13,7 +13,7 @@ spec:
     name: bluenrg
   protocol:
     bluetooth:
-      macAddress: 
+      macAddress: 00:11:22:33:FF:EE 
   nodeSelector:
     nodeSelectorTerms:
     - matchExpressions:
