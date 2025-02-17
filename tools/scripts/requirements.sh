@@ -223,3 +223,24 @@ function check_edge_tools() {
     print_title "Check the edge tools..."
     check_keink
 }
+
+function check_kind_issues() {
+    print_title "Check system configuration to avoid issues related to KIND..."
+    if /sbin/swapon --show | grep -q "dev"; then
+        echo "Swap is not, disabling..."
+        sudo swapoff -a
+    fi
+    LIMIT=512
+    CURRENT_VALUE=$(/sbin/sysctl -n fs.inotify.max_user_instances)
+    if [ "$CURRENT_VALUE" -lt "$LIMIT" ]; then
+        echo "FS Max User Instances < 512, setting to 512..."
+        sudo sysctl fs.inotify.max_user_instances=512
+    fi
+    LIMIT=524288
+    CURRENT_VALUE=$(/sbin/sysctl -n fs.inotify.max_user_watches)
+    if [ "$CURRENT_VALUE" -lt "$LIMIT" ]; then
+        echo "FS Max User Watches < 524288, setting to 524288..."
+        sudo sysctl fs.inotify.max_user_watches=524288
+    fi
+    print_title "Sytem-KIND configuration requirements were met."
+}

@@ -124,6 +124,9 @@ echo "All the tools are installed."
 if [ "$environment_type" -eq 1 ]; then
     environment_type="customkind"
     installation_type="kind"
+    # There are common issues encountered when running multiple clusters with KIND, 
+    # particularly related to swap space memory usage and resource limits within the operating systems.
+    check_kind_issues
     # Call create_kind clusters with parameters and save return value into clusters variable
     create_kind_clusters "$consumers_json" "$providers_json" $environment_type 1 1 $enable_local_discovery $edge_ena
 elif [ "$environment_type" -eq 2 ]; then
