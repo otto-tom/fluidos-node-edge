@@ -97,18 +97,21 @@ func (r *EdgeNodeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	klog.Infof("Node %s has the label %s", node.Name, flags.ResourceNodeLabel)
 
-	// Load in-cluster configuration
-	kubeconfig, err := rest.InClusterConfig()
+	// Try in-cluster config first
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		klog.Fatalf("Error creating in-cluster config: %v", err)
+		klog.Fatalf("Failed to get in-cluster config: %v", err)
 	}
 
-	// Create new client to communicate with K8S API server
-	var edgeClientSet edgeclientset.Interface = utils.NewKubeEdgeClient(kubeconfig.String())
+	// Create the KubeEdge clientset using the in-cluster config
+	clientset, err := edgeclientset.NewForConfig(config)
+	if err != nil {
+		klog.Fatalf("Failed to create KubeEdge clientset: %v", err)
+	}
 
 	// Get device list
 	// FIXME: No error check
-	deviceInstanceList, _ := utils.ListDevice(edgeClientSet, "default")
+	deviceInstanceList, _ := utils.ListDevice(clientset, "default")
 
 	klog.Infof("\033[7mTotal devices found:\033[0m %d\n", len(deviceInstanceList))
 
