@@ -260,6 +260,10 @@ function install_components() {
             docker cp "../../quickstart/kind/configs/mqtt_access.conf" $worker_node:/etc/mosquitto/conf.d 1> $OUTPUT
             docker exec --privileged -it $worker_node systemctl enable mosquitto 1> $OUTPUT
             docker exec --privileged -it $worker_node systemctl start mosquitto 1> $OUTPUT
+	    echo "Install default BT Device Model"
+            kubectl apply -f "$PWD"/../../quickstart/edge/cloudcore/manifests/samples/devices/SensorTile-BLE-Device-Model.yaml --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" 1> $OUTPUT
+	    echo "Install default BT Device Instance"
+            kubectl apply -f "$PWD"/../../quickstart/edge/cloudcore/manifests/samples/devices/SensorTile-BLE-Instance_tb.yaml --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" 1> $OUTPUT
         fi
     done
 
