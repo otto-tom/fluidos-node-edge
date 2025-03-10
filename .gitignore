@@ -6,6 +6,7 @@
 *.dylib
 bin
 tools/scripts/*-config
+tools/binaries
 # Test binary, build with `go test -c`
 *.test
 
