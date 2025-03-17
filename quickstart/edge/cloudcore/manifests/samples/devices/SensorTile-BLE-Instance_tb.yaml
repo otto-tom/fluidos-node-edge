@@ -2,6 +2,7 @@ apiVersion: devices.kubeedge.io/v1alpha2
 kind: Device
 metadata:
   name: stwinkt1b-00112233ffee
+  namespace: fluidos
   labels:
     description: Sensor-Tile-Board
     manufacturer: STMicroelectronics

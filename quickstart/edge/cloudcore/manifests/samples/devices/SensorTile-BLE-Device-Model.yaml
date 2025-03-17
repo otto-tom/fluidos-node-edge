@@ -2,7 +2,7 @@ apiVersion: devices.kubeedge.io/v1alpha2
 kind: DeviceModel
 metadata:
  name: bluenrg
- namespace: default
+ namespace: fluidos
 spec:
  properties:
   - name: environmental
