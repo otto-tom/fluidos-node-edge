@@ -21,7 +21,7 @@ type SensorConfiguration struct {
 	// Node serving the sensor of the Sensor Flavor
 	Node string `json:"node"`
 	// Sensor type of the Sensor Flavor.
-	Type []SensorType `json:"type"`
+	Type SensorType `json:"type"`
 	// Sensor model of the Sensor Flavor.
 	Model string `json:"model"`
 	// Sensor manufacturer of the Sensor Flavor.
@@ -29,14 +29,16 @@ type SensorConfiguration struct {
 	// Sensor market of the Sensor Flavor.
 	Market string `json:"market,omitempty"`
 	// Sensor sampling rate of the Sensor Flavor.
-	SamplingRate []string `json:"srate,omitempty"`
+	SamplingRate string `json:"srate,omitempty"`
 	// Sensor accuracy of the Sensor Flavor.
+	// +kubebuilder:validation:Type=array
+	// +kubebuilder:validation:Items=type=string
 	Accuracy []string `json:"accuracy,omitempty"`
 	// Sensor consumption of the Sensor Flavor.
-	Consumption []string `json:"consumption,omitempty"`
+	Consumption string `json:"consumption,omitempty"`
 	//TODO: add Security standards
 	// Sensor latency of the Sensor Flavor.
-	Latency []string `json:"latency,omitempty"`
+	Latency string `json:"latency,omitempty"`
 	// Sensor additional properties of the Sensor Flavor.
 	AdditionalProperties SensorAdditionalProperties `json:"extraProperties,omitempty"`
 }
