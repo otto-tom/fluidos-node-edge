@@ -16,7 +16,8 @@ package edgeresourcemanager
 
 import (
 	b64 "encoding/base64"
-	"fmt"
+	"encoding/json"
+	"strings"
 
 	devicesv1alpha2 "github.com/kubeedge/kubeedge/pkg/apis/devices/v1alpha2"
 
@@ -24,68 +25,82 @@ import (
 )
 
 // GetSensorInfos returns the NodeInfo struct for a given node and its metrics.
-func GetSensorInfos(device *devicesv1alpha2.Device) (*models.SensorInfo, error) {
+func GetSensorInfos(device *devicesv1alpha2.Device) ([]*models.SensorInfo, error) {
 
-	desc := device.ObjectMeta.Labels["description"]
-	_ = desc
-	fmt.Printf("\033[0mDescription:\033[0m %s\n", desc)
-
-	manu := device.ObjectMeta.Labels["manufacturer"]
-	_ = manu
-	fmt.Printf("\033[0mManufacturer:\033[0m %s\n", manu)
-
-	model := device.ObjectMeta.Labels["model"]
-	_ = model
-	fmt.Printf("\033[0mModel:\033[0m %s\n", model)
-
-	sensorsBase64 := device.ObjectMeta.Annotations["sensors"]
-	fmt.Printf("\033[0mSensors Base64 Encoded:\033[0m %s\n", sensorsBase64)
-
-	sensorsDec, _ := b64.StdEncoding.DecodeString(sensorsBase64)
-	fmt.Printf("\033[0mSensors Decoded\033[0m \n %s \n", sensorsDec)
-
-	// devicesv1alpha2.Device
-
-	// metricsStruct := forgeResourceMetrics(nodeMetrics, node)
-	sensorInfo := forgeSensorInfo(device)
+	var sensorInfo []*models.SensorInfo = forgeSensorInfo(device)
 
 	return sensorInfo, nil
 }
 
-// forgeResourceMetrics creates from params a new ResourceMetrics Struct.
-// func forgeResourceMetrics(sensorMetrics *metricsv1beta1.NodeMetrics, node *corev1.Node) *models.ResourceMetrics {
-// 	// Get the total and used resources
-// 	// cpuTotal := node.Status.Allocatable.Cpu().DeepCopy()
-// 	// cpuUsed := nodeMetrics.Usage.Cpu().DeepCopy()
-// 	// memoryTotal := node.Status.Allocatable.Memory().DeepCopy()
-// 	// memoryUsed := nodeMetrics.Usage.Memory().DeepCopy()
-// 	// podsTotal := node.Status.Allocatable.Pods().DeepCopy()
-// 	// podsUsed := nodeMetrics.Usage.Pods().DeepCopy()
-// 	// ephemeralStorage := nodeMetrics.Usage.StorageEphemeral().DeepCopy()
+func GetCharacteristicUUID(device *devicesv1alpha2.Device, targetProperty string) (string, bool) {
+	for _, visitor := range device.Spec.PropertyVisitors {
+		if strings.EqualFold(targetProperty, visitor.PropertyName) {
+			if visitor.Bluetooth != nil {
+				return visitor.Bluetooth.CharacteristicUUID, true
+			}
+		}
+	}
+	return "", false
+}
 
-// 	// // Compute the available resources
-// 	// cpuAvail := cpuTotal.DeepCopy()
-// 	// memAvail := memoryTotal.DeepCopy()
-// 	// podsAvail := podsTotal.DeepCopy()
-// 	// cpuAvail.Sub(cpuUsed)
-// 	// memAvail.Sub(memoryUsed)
-// 	// podsAvail.Sub(podsUsed)
-
-// 	return &models.ResourceMetrics{
-// 		CPUTotal:         cpuTotal,
-// 		CPUAvailable:     cpuAvail,
-// 		MemoryTotal:      memoryTotal,
-// 		MemoryAvailable:  memAvail,
-// 		PodsTotal:        podsTotal,
-// 		PodsAvailable:    podsAvail,
-// 		EphemeralStorage: ephemeralStorage,
-// 	}
-// }
+func GetMacNoColons(device *devicesv1alpha2.Device) string {
+	rawMAC := device.Spec.Protocol.Bluetooth.MACAddress
+	return strings.ReplaceAll(rawMAC, ":", "")
+}
 
 // forgeNodeInfo creates from params a new NodeInfo struct.
-func forgeSensorInfo(device *devicesv1alpha2.Device) *models.SensorInfo {
-	return &models.SensorInfo{
-		UID:  "UID",
-		Name: "Name",
+// TODO: Validate sensor info struct read from device instance
+func forgeSensorInfo(device *devicesv1alpha2.Device) []*models.SensorInfo {
+
+	var sensorInfo []*models.SensorInfo
+	var sensorData []*models.SensorInfo
+
+	// Sensonrs attached to the device information
+	sensorsBase64 := device.ObjectMeta.Annotations["sensors"]
+	sensorsDec, _ := b64.StdEncoding.DecodeString(sensorsBase64)
+	json.Unmarshal(sensorsDec, &sensorData)
+
+	// Additional required information
+	charUuid, _ := GetCharacteristicUUID(device, sensorData[0].Type.SensorCategory)
+	devMac := GetMacNoColons(device)
+	node := device.Spec.NodeSelector.NodeSelectorTerms[0].MatchExpressions[0].Values
+
+	for _, v := range sensorData {
+		topic := "sensor/" + devMac + "/" + charUuid + "/" + v.Model
+		// return
+		sensorInfo = append(sensorInfo, &models.SensorInfo{
+			UID:          v.UID,
+			Node:         node[0],
+			Name:         v.Name,
+			Model:        v.Model,
+			Manufacturer: v.Manufacturer,
+			Market:       v.Market,
+			Type: models.SensorInfoType{
+				SensorCategory: v.Type.SensorCategory,
+				SensorType:     v.Type.SensorType,
+			},
+			SamplingRate: v.SamplingRate,
+			Accuracy:     v.Accuracy,
+			Consumption:  v.Consumption,
+			Latency:      v.Latency,
+			Properties: models.SensorInfoProp{
+				Unit: models.SensorInfoUnits{
+					Measurement:  v.Properties.Unit.Measurement,
+					Consumption:  v.Properties.Unit.Consumption,
+					SamplingRate: v.Properties.Unit.SamplingRate,
+					Latency:      v.Properties.Unit.Latency,
+				},
+			},
+			Access: models.SensorInfoAccess{
+				Type:   v.Access.Type,
+				Source: v.Access.Source,
+				Resource: models.SensorInfoResource{
+					Topic: topic,
+					Node:  node[0],
+				},
+			},
+		})
 	}
+
+	return sensorInfo
 }

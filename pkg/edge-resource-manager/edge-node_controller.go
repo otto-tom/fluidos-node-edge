@@ -32,6 +32,7 @@ import (
 
 	nodecorev1alpha1 "github.com/fluidos-project/node/apis/nodecore/v1alpha1"
 	"github.com/fluidos-project/node/pkg/utils/flags"
+	"github.com/fluidos-project/node/pkg/utils/getters"
 	models "github.com/fluidos-project/node/pkg/utils/models"
 	"github.com/fluidos-project/node/pkg/utils/resourceforge"
 )
@@ -59,8 +60,6 @@ func (r *EdgeNodeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	log := ctrl.LoggerFrom(ctx, "node", req.NamespacedName)
 	ctx = ctrl.LoggerInto(ctx, log)
 
-	klog.Info("This is the EDGE NODE CONTROLLER Reconcile!")
-
 	// Check if AutoDiscovery is enabled
 	if !r.EnableAutoDiscovery {
 		klog.Info("AutoDiscovery is disabled")
@@ -87,11 +86,12 @@ func (r *EdgeNodeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	// Check if the node has the label
 	if !labelSelector.Matches(labels.Set(node.GetLabels())) {
-		klog.Infof("Node %s does not have the label %s", node.Name, flags.ResourceNodeLabel)
+		// klog.Infof("Node %s does not have the label %s", node.Name, flags.ResourceNodeLabel)
 		return ctrl.Result{}, nil
 	}
 
-	klog.Infof("Node %s has the label %s", node.Name, flags.ResourceNodeLabel)
+	// klog.Infof("Node %s has the label %s", node.Name, flags.ResourceNodeLabel)
+	// klog.Infof("Node %s has Arch: %s\n", node.Name, node.Status.NodeInfo.Architecture)
 
 	// Try in-cluster config first
 	config, err := rest.InClusterConfig()
@@ -106,10 +106,84 @@ func (r *EdgeNodeReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	// Get device list
-	// FIXME: No error check
-	deviceInstanceList, _ := utils.ListDevice(clientset, "fluidos")
+	deviceInstanceList, error := utils.ListDevice(clientset, "fluidos")
 
-	klog.Infof("\033[7mTotal devices found:\033[0m %d\n", len(deviceInstanceList))
+	if error != nil {
+		klog.Fatalf("Failed to list device with status: %d\n", error)
+	}
+
+	// Get NodeIdentity
+	nodeIdentity := getters.GetNodeIdentity(ctx, r.Client)
+	if nodeIdentity == nil {
+		klog.Error("Error getting FLUIDOS Node identity")
+		return ctrl.Result{}, nil
+	}
+
+	// Create ownerReferences with only the current node under examination
+	ownerReferences := []metav1.OwnerReference{
+		{
+			APIVersion: nodecorev1alpha1.GroupVersion.String(),
+			Kind:       "Device",
+			Name:       node.Name,
+			UID:        node.UID,
+		},
+	}
+	_ = ownerReferences
+
+	// Get all the Flavors owned by this node as kubernetes ownership
+	flavorsList := &nodecorev1alpha1.FlavorList{}
+	err = r.List(ctx, flavorsList)
+	if err != nil {
+		klog.Errorf("Error listing Flavors: %v", err)
+		return ctrl.Result{}, nil
+	}
+
+	var matchFlavors []nodecorev1alpha1.Flavor
+
+	// Filter the Flavors by the owner reference
+	for i := range flavorsList.Items {
+		flavor := &flavorsList.Items[i]
+		// Check if the node is one of the owners
+		for _, owner := range flavor.OwnerReferences {
+			if owner.Name == node.Name {
+				// Add the Flavor to the list
+				matchFlavors = append(matchFlavors, *flavor)
+			}
+		}
+	}
+
+	// Check if you have found any Flavor
+	if len(matchFlavors) > 0 {
+		klog.Infof("Found %d flavors for node %s", len(matchFlavors), node.Name)
+		// TODO: Check if the Flavors are consistent with the NodeInfo
+		// TODO: Update the Flavors if necessary
+		return ctrl.Result{}, nil
+	} else {
+		klog.Infof("No flavors found for node %s", node.Name)
+	}
+
+	klog.Infof("\033[7mTotal devices found:\033[0m %d, for node %s\n", len(deviceInstanceList), node.Name)
+	//Iterate devices registered for this node
+	for _, device := range deviceInstanceList {
+		// Get the SensorInfo struct for the device
+		sensorInfo, err := GetSensorInfos(&device)
+		if err != nil {
+			klog.Errorf("Error getting NodeInfo: %v", err)
+			return ctrl.Result{}, err
+		}
+
+		//Iterate devices registered for this node
+		for _, v := range sensorInfo {
+			klog.Infof("SensorInfo created: %s", v.Name)
+			// No Flavor found, create a new one
+			flavor, err := r.createFlavor(ctx, v, *nodeIdentity, ownerReferences)
+			if err != nil {
+				klog.Errorf("Error creating Flavor: %v", err)
+				return ctrl.Result{Requeue: true}, nil
+			}
+			klog.Infof("Flavor created: %s", flavor.Name)
+		}
+	}
 
 	return ctrl.Result{}, nil
 }
@@ -124,7 +198,6 @@ func (r *EdgeNodeReconciler) createFlavor(ctx context.Context, sensorInfo *model
 	if err != nil {
 		return nil, err
 	}
-	klog.Infof("Flavor created: %s", flavorResult.Name)
 
 	return flavorResult, nil
 }
