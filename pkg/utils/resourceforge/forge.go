@@ -256,16 +256,6 @@ func ForgeK8SliceFlavorFromMetrics(node *models.NodeInfo, ni nodecorev1alpha1.No
 func ForgeSensorFlavorFromMetrics(sensor *models.SensorInfo, ni nodecorev1alpha1.NodeIdentity,
 	ownerReferences []metav1.OwnerReference) (flavor *nodecorev1alpha1.Flavor) {
 
-	// Map every units slice element
-	// var units []nodecorev1alpha1.SensorUnits
-	// for _, unit := range sensor.Properties.Unit {
-	// 	units = append(units, nodecorev1alpha1.SensorUnits{
-	// 		Measurement:  unit.Measurement,
-	// 		Consumption:  unit.Consumption,
-	// 		SamplingRate: unit.SamplingRate,
-	// 	})
-	// }
-
 	sensorType := nodecorev1alpha1.SensorFlavor{
 		Characteristics: nodecorev1alpha1.SensorCharacteristics{
 			UID:  sensor.UID,
@@ -281,20 +271,21 @@ func ForgeSensorFlavorFromMetrics(sensor *models.SensorInfo, ni nodecorev1alpha1
 			Accuracy:     sensor.Accuracy,
 			Consumption:  sensor.Consumption,
 			Latency:      sensor.Latency,
-			AdditionalProperties: nodecorev1alpha1.SensorAdditionalProperties{
+			Properties: nodecorev1alpha1.SensorAdditionalProperties{
 				Unit: nodecorev1alpha1.SensorUnits{
 					Measurement:  sensor.Properties.Unit.Measurement,
 					Consumption:  sensor.Properties.Unit.Consumption,
 					SamplingRate: sensor.Properties.Unit.SamplingRate,
+					Latency:      sensor.Properties.Unit.Latency,
 				},
 			},
-		},
-		Access: nodecorev1alpha1.SensorAccess{
-			Type:   sensor.Access.Type,
-			Source: sensor.Access.Source,
-			Resource: nodecorev1alpha1.Resource{
-				Topic: sensor.Access.Resource.Topic,
-				Node:  sensor.Access.Resource.Node,
+			Access: nodecorev1alpha1.SensorAccess{
+				Type:   sensor.Access.Type,
+				Source: sensor.Access.Source,
+				Resource: nodecorev1alpha1.Resource{
+					Topic: sensor.Access.Resource.Topic,
+					Node:  sensor.Access.Resource.Node,
+				},
 			},
 		},
 	}
