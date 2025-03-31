@@ -24,26 +24,27 @@ type SensorInfo struct {
 	Market       string           `json:"market"`
 	Type         SensorInfoType   `json:"type"`
 	SamplingRate string           `json:"samplingRate"`
-	Accuracy     string           `json:"accuracy"`
+	Accuracy     []string         `json:"accuracy"`
 	Consumption  string           `json:"consumption"`
 	Latency      string           `json:"latency"`
-	Properties   SensorInfoProp   `json:"sensorInfoProperties,omitempty"`
-	Access       SensorInfoAccess `json:"sensorInfoAccess"`
+	Properties   SensorInfoProp   `json:"properties,omitempty"`
+	Access       SensorInfoAccess `json:"access"`
 }
 
 type SensorInfoType struct {
-	SensorCategory string `json:"category"`
-	SensorType     string `json:"type"`
+	SensorCategory string   `json:"sensorCategory"`
+	SensorType     []string `json:"sensorType"`
 }
 
 type SensorInfoProp struct {
-	Unit SensorInfoUnits `json:"units"`
+	Unit SensorInfoUnits `json:"unit"`
 }
 
 type SensorInfoUnits struct {
-	Measurement  string `json:"measurement"`
-	Consumption  string `json:"consumption"`
-	SamplingRate string `json:"sampling"`
+	Measurement  []string `json:"measurement"`
+	Consumption  string   `json:"consumption"`
+	SamplingRate string   `json:"samplingRate"`
+	Latency      string   `json:"latency"`
 }
 
 type SensorInfoAccess struct {
