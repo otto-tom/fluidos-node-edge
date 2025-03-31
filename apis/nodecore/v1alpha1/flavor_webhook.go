@@ -66,6 +66,8 @@ func (r *Flavor) ValidateCreate() (admission.Warnings, error) {
 		flavorlog.Info("FlavorTypeIdentifier is VM")
 	case TypeService:
 		flavorlog.Info("FlavorTypeIdentifier is Service")
+	case TypeSensor:
+		flavorlog.Info("FlavorTypeIdentifier is Sensor")
 	default:
 		flavorlog.Info("FlavorTypeIdentifier is not valid")
 	}
@@ -92,6 +94,8 @@ func (r *Flavor) ValidateUpdate(old runtime.Object) (admission.Warnings, error) 
 		flavorlog.Info("FlavorTypeIdentifier is VM")
 	case TypeService:
 		flavorlog.Info("FlavorTypeIdentifier is Service")
+	case TypeSensor:
+		flavorlog.Info("FlavorTypeIdentifier is Sensor")
 	default:
 		flavorlog.Info("FlavorTypeIdentifier is not valid")
 	}
