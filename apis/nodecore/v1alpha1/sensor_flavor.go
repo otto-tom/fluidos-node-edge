@@ -23,8 +23,6 @@ import (
 type SensorFlavor struct {
 	// Characteristics of the Sensor Flavor
 	Characteristics SensorCharacteristics `json:"characteristics"`
-	// Policies of the Sensor Flavor
-	Access SensorAccess `json:"access"`
 }
 
 // GetFlavorType returns the type of the Flavor.
@@ -38,44 +36,56 @@ type SensorCharacteristics struct {
 	UID string `json:"uid"`
 	// Node serving the sensor of the Sensor Flavor
 	Node string `json:"node"`
-	// Sensor type of the Sensor Flavor.
-	Type SensorType `json:"type"`
+	// Sensor name of the Sensor Flavor
+	Name string `json:"name"`
 	// Sensor model of the Sensor Flavor.
 	Model string `json:"model"`
 	// Sensor manufacturer of the Sensor Flavor.
 	Manufacturer string `json:"manufacturer"`
 	// Sensor market of the Sensor Flavor.
 	Market string `json:"market,omitempty"`
+	// Sensor type of the Sensor Flavor.
+	Type SensorType `json:"type"`
 	// Sensor sampling rate of the Sensor Flavor.
-	SamplingRate string `json:"srate,omitempty"`
+	SamplingRate string `json:"samplingRate,omitempty"`
 	// Sensor accuracy of the Sensor Flavor.
-	Accuracy string `json:"accuracy,omitempty"`
+	// +kubebuilder:validation:Type=array
+	// +kubebuilder:validation:Items=type=string
+	Accuracy []string `json:"accuracy,omitempty"`
 	// Sensor consumption of the Sensor Flavor.
 	Consumption string `json:"consumption,omitempty"`
 	//TODO: add Security standards
 	// Sensor latency of the Sensor Flavor.
 	Latency string `json:"latency,omitempty"`
-	// Sensor additional properties of the Sensor Flavor.
-	AdditionalProperties SensorAdditionalProperties `json:"extraProperties,omitempty"`
+	// Sensor properties of the Sensor Flavor.
+	Properties SensorAdditionalProperties `json:"properties,omitempty"`
+	// Policies of the Sensor Flavor
+	Access SensorAccess `json:"access"`
 }
 
 type SensorType struct {
-	SensorCategory string `json:"category"`
-	SensorType     string `json:"type"`
+	SensorCategory string `json:"sensorCategory"`
+	// +kubebuilder:validation:Type=array
+	// +kubebuilder:validation:Items=type=string
+	SensorType []string `json:"sensorType"`
 }
 
 type SensorAdditionalProperties struct {
 	// Sensor type
-	Unit SensorUnits `json:"units"`
+	Unit SensorUnits `json:"unit"`
 }
 
 type SensorUnits struct {
 	// Sensor measurement unit
-	Measurement string `json:"measurement"`
+	// +kubebuilder:validation:Type=array
+	// +kubebuilder:validation:Items=type=string
+	Measurement []string `json:"measurement"`
 	// Sensor consumption unit
 	Consumption string `json:"consumption"`
 	// Sensor sampling rate unit
-	SamplingRate string `json:"sampling"`
+	SamplingRate string `json:"samplingRate"`
+	// Sensor latency unit
+	Latency string `json:"latency"`
 }
 
 // SensorAccess represents sensor access information to be used by the router.
