@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -771,14 +771,24 @@ func ParseContract(contract *reservationv1alpha1.Contract) *models.Contract {
 		}(),
 		Seller: ParseNodeIdentity(contract.Spec.Seller),
 		PeeringTargetCredentials: models.LiqoCredentials{
-			ClusterID:   contract.Spec.PeeringTargetCredentials.ClusterID,
-			ClusterName: contract.Spec.PeeringTargetCredentials.ClusterName,
-			Token:       contract.Spec.PeeringTargetCredentials.Token,
-			Endpoint:    contract.Spec.PeeringTargetCredentials.Endpoint,
+			ClusterID:  contract.Spec.PeeringTargetCredentials.ClusterID,
+			Kubeconfig: contract.Spec.PeeringTargetCredentials.Kubeconfig,
 		},
-		ExpirationTime:   contract.Spec.ExpirationTime,
-		ExtraInformation: contract.Spec.ExtraInformation,
-		NetworkRequests:  contract.Spec.NetworkRequests,
+		ExpirationTime:           contract.Spec.ExpirationTime,
+		ExtraInformation:         contract.Spec.ExtraInformation,
+		NetworkRequests:          contract.Spec.NetworkRequests,
+		IngressTelemetryEndpoint: ParseTelemetryServer(contract.Spec.IngressTelemetryEndpoint),
+	}
+}
+
+// ParseTelemetryServer parses a TelemetryServer CR into a TelemetryServer model.
+func ParseTelemetryServer(telemetryServer *reservationv1alpha1.TelemetryServer) *models.TelemetryServer {
+	if telemetryServer == nil {
+		return nil
+	}
+	return &models.TelemetryServer{
+		Endpoint: telemetryServer.Endpoint,
+		Intents:  telemetryServer.Intents,
 	}
 }
 

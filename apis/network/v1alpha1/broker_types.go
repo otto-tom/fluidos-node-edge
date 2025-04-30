@@ -18,45 +18,49 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// KnownClusterSpec defines the desired state of KnownCluster.
-type KnownClusterSpec struct {
+// BrokerSpec defines the desired state of Broker.
+type BrokerSpec struct {
 
-	// Address of the KnownCluster.
+	// Address of the Broker.
 	Address string `json:"address"`
+	Name    string `json:"name"`
+	ClCert  string `json:"clcert"`
+	CaCert  string `json:"cacert"`
+	Role    string `json:"role"`
 }
 
-// KnownClusterStatus defines the observed state of KnownCluster.
-type KnownClusterStatus struct {
+// BrokerStatus defines the observed state of Broker.
+type BrokerStatus struct {
 
-	// This field represents the expiration time of the KnownCluster. It is used to determine when the KnownCluster is no longer valid.
+	// This field represents the expiration time of the Broker. It is used to determine when the Broker is no longer valid.
 	ExpirationTime string `json:"expirationTime"`
 
-	// This field represents the last update time of the KnownCluster.
+	// This field represents the last update time of the Broker.
 	LastUpdateTime string `json:"lastUpdateTime"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:resource:shortName=kclust;kclusts
+//+kubebuilder:resource:shortName=broker;brokers
 
-// KnownCluster is the Schema for the clusters API.
-type KnownCluster struct {
+// Broker is the Schema for the clusters API.
+type Broker struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   KnownClusterSpec   `json:"spec,omitempty"`
-	Status KnownClusterStatus `json:"status,omitempty"`
+	Spec   BrokerSpec   `json:"spec,omitempty"`
+	Status BrokerStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 
-// KnownClusterList contains a list of KnownCluster.
-type KnownClusterList struct {
+// BrokerList contains a list of Broker.
+type BrokerList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []KnownCluster `json:"items"`
+	Items           []Broker `json:"items"`
 }
 
 func init() {
-	SchemeBuilder.Register(&KnownCluster{}, &KnownClusterList{})
+	SchemeBuilder.Register(&Broker{}, &BrokerList{})
 }

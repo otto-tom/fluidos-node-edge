@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ type PurchaseRequest struct {
 	// This field is optional and should be used only if the buyer is the Liqo peering target cluster, based on the Flavor you are going to purchase.
 	// This field may be dismissed in the future version of Liqo.
 	LiqoCredentials *LiqoCredentials `json:"liqoCredentials,omitempty"`
+	// IngressTelemetryEndpoint is the endpoint where the buyer wants to receive the telemetry data.
+	// This field is optional and should be used only if continuous telemetry is needed.
+	IngressTelemetryEndpoint *TelemetryServer `json:"ingressTelemetryEndpoint,omitempty"`
 }
 
 // ReserveRequest is the request model for reserving a Flavor.

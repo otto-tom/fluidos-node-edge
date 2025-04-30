@@ -281,6 +281,22 @@ spec:
                     - lastUpdateTime
                     type: object
                 type: object
+              ingressTelemetryEndpoint:
+                description: IngressTelemetryEndpoint is the endpoint where the ingress
+                  telemetry is sent by the provider
+                properties:
+                  endpoint:
+                    description: Endpoint is the endpoint where the telemetry is sent
+                      by the provider
+                    type: string
+                  intents:
+                    description: Intents is the list of intents
+                    items:
+                      type: string
+                    type: array
+                required:
+                - endpoint
+                type: object
               networkRequests:
                 description: NetworkRequests contains the reference to the resource
                   containing the network requests.
@@ -289,19 +305,13 @@ spec:
                 description: This credentials will be used by the customer to connect
                   and enstablish a peering with the seller FLUIDOS Node through Liqo.
                 properties:
-                  clusterID:
+                  kubeconfig:
                     type: string
-                  clusterName:
-                    type: string
-                  endpoint:
-                    type: string
-                  token:
+                  liqoID:
                     type: string
                 required:
-                - clusterID
-                - clusterName
-                - endpoint
-                - token
+                - kubeconfig
+                - liqoID
                 type: object
               seller:
                 description: This is the Node identity of the seller FLUIDOS Node.

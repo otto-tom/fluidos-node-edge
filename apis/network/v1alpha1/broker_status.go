@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,5 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package grpc provides the gRPC server for Liqo Controller Manager.
-package grpc
+package v1alpha1
+
+import "github.com/fluidos-project/node/pkg/utils/tools"
+
+// UpdateStatus updates the status of the broker.
+func (broker *Broker) UpdateStatus() {
+	broker.Status.LastUpdateTime = tools.GetTimeNow()
+	broker.Status.ExpirationTime = tools.GetExpirationTime(0, 0, 10)
+}

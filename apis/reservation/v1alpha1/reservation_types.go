@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,14 @@ import (
 
 	nodecorev1alpha1 "github.com/fluidos-project/node/apis/nodecore/v1alpha1"
 )
+
+// TelemetryServer defines the telemetry server configuration.
+type TelemetryServer struct {
+	// Endpoint is the endpoint where the telemetry is sent by the provider
+	Endpoint string `json:"endpoint"`
+	// Intents is the list of intents
+	Intents []string `json:"intents,omitempty"`
+}
 
 // ReservationSpec defines the desired state of Reservation.
 type ReservationSpec struct {
@@ -43,6 +51,9 @@ type ReservationSpec struct {
 
 	// PeeringCandidate is the reference to the PeeringCandidate of the Reservation
 	PeeringCandidate nodecorev1alpha1.GenericRef `json:"peeringCandidate,omitempty"`
+
+	// IngressTelemetryEndpoint is the endpoint where the ingress telemetry is sent by the provider
+	IngressTelemetryEndpoint *TelemetryServer `json:"ingressTelemetryEndpoint,omitempty"`
 }
 
 // ReservationStatus defines the observed state of Reservation.

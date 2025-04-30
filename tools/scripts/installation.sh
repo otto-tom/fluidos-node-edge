@@ -106,6 +106,8 @@ function install_components() {
         echo "Value: ${clusters[$cluster]}"
     done
 
+    echo "Liqoctl version in installation.sh: $(liqoctl version 2>&1 | grep -oP 'Client version: \K\S+')"
+
     if [ "$local_repositories" == "true" ]; then
         unset COMPONENT_MAP
         declare -A COMPONENT_MAP
@@ -139,6 +141,8 @@ function install_components() {
         pids=()
     fi
 
+    echo "Liqoctl version in installation.sh: $(liqoctl version 2>&1 | grep -oP 'Client version: \K\S+')"
+
     # Iterate over the clusters
     for cluster in "${!clusters[@]}"; do
 
@@ -146,6 +150,19 @@ function install_components() {
         echo "Cluster is: $cluster"
         echo "Cluster value is: ${clusters[$cluster]}"
 
+        if alias liqoctl &>/dev/null; then
+            liqoctl_path=$(alias liqoctl | sed -E "s/alias liqoctl='(.*)'/\1/")
+        else
+            liqoctl_path=$(which liqoctl)
+        fi
+        
+        echo "Liqoctl version in installation.sh CLUSTER LOOP: $(liqoctl version 2>&1 | grep -oP 'Client version: \K\S+')"
+        if [ -z "$liqoctl_path" ]; then
+            liqoctl_path='/usr/local/bin/liqoctl'
+        fi
+        echo "Liqoctl path is: $liqoctl_path"
+
+        # Get the kubeconfig file which depends on variable installation_type
         KUBECONFIG=$(jq -r '.kubeconfig' <<< "${clusters[$cluster]}")
         echo "The KUBECONFIG is $KUBECONFIG"
 
@@ -184,9 +201,8 @@ function install_components() {
         fi
 
         # Install liqo
-        liqo_ver="v0.10.3" #Explicitely define compatible Liqo version
         chmod +x "$SCRIPT_DIR"/install_liqo.sh
-        "$SCRIPT_DIR"/install_liqo.sh "$installation_type" "$cluster" "$KUBECONFIG" "$liqo_ver" || { echo "Failed to install Liqo in cluster $cluster"; exit 1; }
+        "$SCRIPT_DIR"/install_liqo.sh "$installation_type" "$cluster" "$KUBECONFIG" "$liqoctl_path" || { echo "Failed to install Liqo in cluster $cluster"; exit 1; }
         chmod -x "$SCRIPT_DIR"/install_liqo.sh
 
         # Skipping the installation of the node Helm chart if the cluster is a provider and its installation type is not kind

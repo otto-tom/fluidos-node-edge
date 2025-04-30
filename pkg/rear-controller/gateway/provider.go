@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -365,7 +365,7 @@ func (g *Gateway) reserveFlavor(w http.ResponseWriter, r *http.Request) {
 				}
 
 				if !supported {
-					klog.Errorf("Hosting policy %s not supported by the flavor", serviceConfiguration.HostingPolicy)
+					klog.Errorf("Hosting policy %v not supported by the flavor", serviceConfiguration.HostingPolicy)
 					http.Error(w, "Hosting policy not supported by the flavor", http.StatusBadRequest)
 					return
 				}
@@ -494,7 +494,7 @@ func (g *Gateway) purchaseFlavor(w http.ResponseWriter, r *http.Request) {
 	switch flavorSold.Spec.FlavorType.TypeIdentifier {
 	case nodecorev1alpha1.TypeK8Slice:
 		// Create a new Liqo credentials for the K8Slice flavor based on the ones provided by the provider
-		liqoCredentials, err = getters.GetLiqoCredentials(context.Background(), g.client)
+		liqoCredentials, err = getters.GetLiqoCredentials(context.Background(), g.client, g.restConfig)
 		if err != nil {
 			klog.Errorf("Error getting Liqo Credentials: %s", err)
 			http.Error(w, "Error getting Liqo Credentials", http.StatusInternalServerError)
@@ -513,7 +513,7 @@ func (g *Gateway) purchaseFlavor(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// Override the Liqo credentials with the ones sent by the client
-		liqoCredentials, err = resourceforge.ForgeLiqoCredentialsFromObj(purchase.LiqoCredentials)
+		liqoCredentials, err = getters.GetLiqoCredentials(context.Background(), g.client, g.restConfig)
 		if err != nil {
 			klog.Errorf("Error forging the Liqo credentials: %s", err)
 			http.Error(w, "Error forging the Liqo credentials", http.StatusInternalServerError)
@@ -531,7 +531,7 @@ func (g *Gateway) purchaseFlavor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Obtaining the Seller Liqo Cluster ID
-	sellerLiqoCredentials, err := getters.GetLiqoCredentials(context.Background(), g.client)
+	sellerLiqoCredentials, err := getters.GetLiqoCredentials(context.Background(), g.client, g.restConfig)
 	if err != nil {
 		klog.Errorf("Error getting Liqo Credentials: %s", err)
 		http.Error(w, "Error getting Liqo Credentials", http.StatusInternalServerError)
@@ -541,7 +541,13 @@ func (g *Gateway) purchaseFlavor(w http.ResponseWriter, r *http.Request) {
 	// Create a new contract
 	klog.Infof("Creating a new contract...")
 	// Forge the contract object
-	contract = *resourceforge.ForgeContract(flavorSold, &transaction, liqoCredentials, sellerLiqoCredentials.ClusterID)
+	contract = *resourceforge.ForgeContract(
+		flavorSold,
+		&transaction,
+		liqoCredentials,
+		sellerLiqoCredentials.ClusterID,
+		purchase.IngressTelemetryEndpoint,
+	)
 	err = g.client.Create(context.Background(), &contract)
 	if err != nil {
 		klog.Errorf("Error creating the Contract: %s", err)

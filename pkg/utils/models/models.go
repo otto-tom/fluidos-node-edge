@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -86,7 +86,8 @@ type Location struct {
 
 // NodeIdentityAdditionalInfo represents additional information about a NodeIdentity.
 type NodeIdentityAdditionalInfo struct {
-	LiqoID string `json:"liqoID,omitempty"`
+	LiqoID     string `json:"liqoID,omitempty"`
+	Kubeconfig string `json:"kubeconfig,omitempty"`
 }
 
 // NodeIdentity represents the owner of a Flavor, with associated ID, IP, and domain name.

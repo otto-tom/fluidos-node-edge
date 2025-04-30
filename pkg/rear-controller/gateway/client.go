@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ func (g *Gateway) ReserveFlavor(ctx context.Context,
 		return nil, err
 	}
 
-	liqoCredentials, err := getters.GetLiqoCredentials(ctx, g.client)
+	liqoCredentials, err := getters.GetLiqoCredentials(ctx, g.client, g.restConfig)
 	if err != nil {
 		klog.Errorf("Error when getting Liqo credentials: %s", err)
 		return nil, err
@@ -57,7 +57,8 @@ func (g *Gateway) ReserveFlavor(ctx context.Context,
 			IP:     g.ID.IP,
 			Domain: g.ID.Domain,
 			AdditionalInformation: &models.NodeIdentityAdditionalInfo{
-				LiqoID: liqoCredentials.ClusterID,
+				LiqoID:     liqoCredentials.ClusterID,
+				Kubeconfig: liqoCredentials.Kubeconfig,
 			},
 		},
 		Configuration: func() *models.Configuration {
@@ -144,6 +145,15 @@ func (g *Gateway) PurchaseFlavor(ctx context.Context, transactionID string,
 		return nil, err
 	}
 
+	// Get Reservation from the transaction
+	reservation, err := getters.GetReservationByTransactionID(ctx, g.client, transactionID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the IngressTelemetryEndpoint
+	ite := parseutil.ParseTelemetryServer(reservation.Spec.IngressTelemetryEndpoint)
+
 	klog.Infof("Transaction %s for flavor %s", transactionID, transaction.FlavorID)
 
 	var liqoCredentials *models.LiqoCredentials
@@ -156,7 +166,8 @@ func (g *Gateway) PurchaseFlavor(ctx context.Context, transactionID string,
 	}
 
 	body := models.PurchaseRequest{
-		LiqoCredentials: liqoCredentials,
+		LiqoCredentials:          liqoCredentials,
+		IngressTelemetryEndpoint: ite,
 	}
 
 	selectorBytes, err := json.Marshal(body)

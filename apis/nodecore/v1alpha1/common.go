@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -78,10 +78,8 @@ type Configuration struct {
 
 // LiqoCredentials contains the credentials of a Liqo cluster to enstablish a peering.
 type LiqoCredentials struct {
-	ClusterID   string `json:"clusterID"`
-	ClusterName string `json:"clusterName"`
-	Token       string `json:"token"`
-	Endpoint    string `json:"endpoint"`
+	ClusterID  string `json:"liqoID"`
+	Kubeconfig string `json:"kubeconfig"`
 }
 
 // ParseConfiguration parses the configuration data into the correct type.

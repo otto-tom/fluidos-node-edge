@@ -1,4 +1,4 @@
-// Copyright 2022-2024 FLUIDOS Project
+// Copyright 2022-2025 FLUIDOS Project
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,6 +52,9 @@ type ContractSpec struct {
 
 	// NetworkRequests contains the reference to the resource containing the network requests.
 	NetworkRequests string `json:"networkRequests,omitempty"`
+
+	// IngressTelemetryEndpoint is the endpoint where the ingress telemetry is sent by the provider
+	IngressTelemetryEndpoint *TelemetryServer `json:"ingressTelemetryEndpoint,omitempty"`
 }
 
 // ContractStatus defines the observed state of Contract.

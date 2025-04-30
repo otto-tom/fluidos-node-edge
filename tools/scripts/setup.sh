@@ -118,6 +118,8 @@ if [ "$edge_ena" == "true" ]; then
     check_edge_tools
 fi
 
+echo Liqoctl version in setup.sh: "$(liqoctl version --client)"
+
 echo "All the tools are installed."
 
 # Check if the input is 1, 2 or 3
