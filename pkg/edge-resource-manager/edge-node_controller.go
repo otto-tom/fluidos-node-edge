@@ -16,6 +16,7 @@ package edgeresourcemanager
 
 import (
 	"context"
+	"fmt"
 
 	edgeclientset "github.com/kubeedge/kubeedge/pkg/client/clientset/versioned"
 	"github.com/kubeedge/kubeedge/tests/e2e/utils"
@@ -192,6 +193,12 @@ func (r *EdgeNodeReconciler) createFlavor(ctx context.Context, sensorInfo *model
 	nodeIdentity nodecorev1alpha1.NodeIdentity, ownerReferences []metav1.OwnerReference) (flavor *nodecorev1alpha1.Flavor, err error) {
 	// Forge the Flavor from the NodeInfo and NodeIdentity
 	flavorResult := resourceforge.ForgeSensorFlavorFromMetrics(sensorInfo, nodeIdentity, ownerReferences)
+
+	if flavorResult == nil {
+		klog.Error("Error forging Flavor")
+		return nil, fmt.Errorf("error forging Flavor, Flavor is nil")
+	}
+	klog.Infof("Ready to create Flavor %s of type %s", flavorResult.Name, flavorResult.Spec.FlavorType.TypeIdentifier)
 
 	// Create the Flavor
 	err = r.Create(ctx, flavorResult)
