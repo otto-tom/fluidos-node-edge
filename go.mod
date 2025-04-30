@@ -4,6 +4,7 @@ go 1.24.0
 
 require (
 	github.com/gorilla/mux v1.8.1
+	github.com/kubeedge/kubeedge v1.14.5
 	github.com/liqotech/liqo v1.0.0
 	github.com/rabbitmq/amqp091-go v1.10.0
 	k8s.io/api v0.32.1
@@ -19,21 +20,29 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/aws/aws-sdk-go v1.54.6 // indirect
+	github.com/eclipse/paho.mqtt.golang v1.2.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/nxadm/tail v1.4.8 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
+	github.com/onsi/gomega v1.36.1 // indirect
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.67.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
+	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
+	k8s.io/component-base v0.32.0 // indirect
 	sigs.k8s.io/aws-iam-authenticator v0.6.27 // indirect
 )
 
