@@ -230,9 +230,7 @@ function install_components() {
                 --wait \
                 --kubeconfig $KUBECONFIG
             else
-		echo -e "\n\nKube Config $KUBECONFIG\n\n"
                 echo "Installing remote repositories in cluster $cluster with local resource manager"
-                #helm upgrade --install node fluidos/node --version "v0.0.6" -n fluidos --create-namespace -f "$value_file" \
                 helm upgrade --install node fluidos/node -n fluidos --create-namespace -f "$value_file" \
                 --set "provider=$installation_type" \
                 --set "common.configMaps.nodeIdentity.ip=$ip" \
@@ -262,7 +260,7 @@ function install_components() {
             export KUBECONFIG=$(jq -r '.kubeconfig' <<< "${clusters[$cluster]}")
             echo "Found Edge enabled cluster: $cluster"
 	    echo "Patching liqo for edge node"
-            kubectl patch daemonset liqo-route --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" -n liqo -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
+            kubectl patch daemonset liqo-fabric --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" -n liqo -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
             kubectl patch cronjob.batch liqo-telemetry --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" -n liqo -p '{"spec": {"jobTemplate": {"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}}}' 1> $OUTPUT
             worker=""$cluster"-worker2"
 	    echo "Taint edge worker node not to schedule any load (dirty way to avoid issues, check again once KE is updated)"
