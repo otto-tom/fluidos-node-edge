@@ -77,7 +77,7 @@ create_kind_clusters() {
                 kind create cluster --name "$name" --config "$SCRIPT_DIR"/../../quickstart/kind/configs/standard.yaml --kubeconfig "$SCRIPT_DIR"/"$name"-config -q
                 # Install macvlan plugin to enable multicast node discovery, if required
                 if [ "$6" == "true" ]; then
-                    num_workers=$(kind get nodes --name fluidos-consumer-1 | grep worker -c)
+                    num_workers=$(kind get nodes --name "$name" | grep worker -c)
                     for j in $(seq 1 "$num_workers"); do
                         (
                             docker exec --workdir /tmp "$name"-worker"$([ "$j" = 1 ] && echo "" || echo "$j")" mkdir -p cni-plugins
@@ -122,7 +122,7 @@ create_kind_clusters() {
                 fi
                 # Install macvlan plugin to enable multicast node discovery, if required
                 if [ "$6" == "true" ]; then
-                    num_workers=$(kind get nodes --name fluidos-provider-1 | grep worker -c)
+                    num_workers=$(kind get nodes --name "$name" | grep worker -c)
                     for j in $(seq 1 "$num_workers"); do
                         (
                             docker exec --workdir /tmp "$name"-worker"$([ "$j" = 1 ] && echo "" || echo "$j")" mkdir -p cni-plugins
