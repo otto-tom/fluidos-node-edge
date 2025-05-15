@@ -259,25 +259,23 @@ function install_components() {
         if [ "$(jq -r '.role' <<< "${clusters[$cluster]}")" == "provider" ] && [ "$edge_ena" == "true" ]; then
             export KUBECONFIG=$(jq -r '.kubeconfig' <<< "${clusters[$cluster]}")
             echo "Found Edge enabled cluster: $cluster"
-	    echo "Patching liqo for edge node"
+	        echo "Patching liqo for edge node"
             kubectl patch daemonset liqo-fabric --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" -n liqo -p '{"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}' 1> $OUTPUT
             kubectl patch cronjob.batch liqo-telemetry --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" -n liqo -p '{"spec": {"jobTemplate": {"spec": {"template": {"spec": {"affinity": {"nodeAffinity": {"requiredDuringSchedulingIgnoredDuringExecution": {"nodeSelectorTerms": [{"matchExpressions": [{"key": "node-role.kubernetes.io/edge", "operator": "DoesNotExist"}]}]}}}}}}}}}' 1> $OUTPUT
             worker=""$cluster"-worker2"
-	    echo "Taint edge worker node not to schedule any load (dirty way to avoid issues, check again once KE is updated)"
-	    kubectl taint nodes "$worker" key=NoSchedule:NoSchedule 1> $OUTPUT
             worker_node=$(docker ps --filter "name=$worker" -q)
-        echo "Label edge worker node with fluidos tags"
+            echo "Label edge worker node with fluidos tags"
             kubectl label nodes "$worker" node-role.fluidos.eu/edge-worker=true 1> $OUTPUT
             kubectl label nodes "$worker" node-role.fluidos.eu/sensors=true 1> $OUTPUT
-	    echo "Install the MQTT broker for the worker node"
+            echo "Install the MQTT broker for the worker node"
             docker exec --privileged -it $worker_node apt-get update 1> $OUTPUT
             docker exec --privileged -it $worker_node apt-get install -y mosquitto 1> $OUTPUT
             docker cp "../../quickstart/kind/configs/mqtt_access.conf" $worker_node:/etc/mosquitto/conf.d 1> $OUTPUT
             docker exec --privileged -it $worker_node systemctl enable mosquitto 1> $OUTPUT
             docker exec --privileged -it $worker_node systemctl start mosquitto 1> $OUTPUT
-	    echo "Install default BT Device Model"
+            echo "Install default BT Device Model"
             kubectl apply -f "$PWD"/../../quickstart/edge/cloudcore/manifests/samples/devices/SensorTile-BLE-Device-Model.yaml --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" 1> $OUTPUT
-	    echo "Install default BT Device Instance"
+            echo "Install default BT Device Instance"
             kubectl apply -f "$PWD"/../../quickstart/edge/cloudcore/manifests/samples/devices/SensorTile-BLE-Instance_tb.yaml --kubeconfig "$PWD/$cluster"-config --context "kind-$cluster" 1> $OUTPUT
         fi
     done

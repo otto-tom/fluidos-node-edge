@@ -235,7 +235,7 @@ function install_keink() {
     esac
     wget -q https://github.com/otto-tom/keink/releases/download/v1.14/"$dl_file"
     mkdir -p ../binaries
-    mv keink ../binaries/keink 
+    mv "$dl_file" ../binaries/keink 
     chmod +x ../binaries/keink 
     print_title "keink installed successfully."
 }
