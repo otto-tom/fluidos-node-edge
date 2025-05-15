@@ -226,7 +226,14 @@ function check_jq() {
 # Check keink function
 function install_keink() { 
     print_title "Install keink..."
-    wget -q https://github.com/otto-tom/keink/releases/download/v1.14/keink
+    arch=$(uname -m)
+    dl_file=""
+    case $arch in
+      x86_64) dl_file="keink_amd64";;
+      aarch64) dl_file="keink_arm64";;
+      *) echo "Unknown architecture: $arch" && exit 1;;
+    esac
+    wget -q https://github.com/otto-tom/keink/releases/download/v1.14/"$dl_file"
     mkdir -p ../binaries
     mv keink ../binaries/keink 
     chmod +x ../binaries/keink 
