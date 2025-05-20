@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package localresourcemanager implements the utility functions for the local resource manager controller
+// Package edgeresourcemanager implements the utility functions for the edge resource manager controller
 package edgeresourcemanager
