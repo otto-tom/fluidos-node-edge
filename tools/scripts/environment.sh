@@ -101,7 +101,7 @@ create_kind_clusters() {
             ( 
                 # Cluster name
                 if [ "$edge_ena" == "true" ]; then
-                  name="fluidos-provider-$i"-edge
+                  name="fluidos-provider-edge-$i"
                   export KUBECONFIG="$SCRIPT_DIR"/"$name"-config 
                 else
                   name="fluidos-provider-$i"
